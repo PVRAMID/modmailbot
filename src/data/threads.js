@@ -20,6 +20,23 @@ const MINUTES = 60 * 1000;
 const HOURS = 60 * MINUTES;
 
 let threadCreationQueue = Promise.resolve();
+let newTicketID = 0;
+
+function pad(number)
+{
+  if (number <= 9999)
+  {
+     number = ("000" + number).slice(-4); 
+  }
+
+  if (number >=9999)
+  {
+    newTicketID = 1;
+    number = 1;
+    number = ("000" + number).slice(-4); 
+  } 
+  return number;
+}
 
 function _addToThreadCreationQueue(fn) {
   threadCreationQueue = threadCreationQueue
@@ -173,10 +190,15 @@ async function createNewThreadForUser(user, opts = {}) {
     if (cleanName === "") cleanName = "unknown";
     cleanName = cleanName.slice(0, 95); // Make sure the discrim fits
 
+    newTicketID++;
     let channelName = `${cleanName}-${user.discriminator}`;
 
     if (config.anonymizeChannelName) {
       channelName = crypto.createHash("md5").update(channelName + Date.now()).digest("hex").slice(0, 12);
+    }
+
+    if (config.ascendingTickets) {
+      channelName = `${cleanName}-${pad(newTicketID)}`;
     }
 
     console.log(`[NOTE] Creating new thread channel ${channelName}`);
